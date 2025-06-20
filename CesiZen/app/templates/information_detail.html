@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}{{ info.title }}{% endblock %}
+
+{% block content %}
+
+<div class="container mx-auto py-16 px-4">
+  <div class="mb-6">
+    <a href="{% url 'informations' %}" class="inline-flex items-center text-sm text-green-600 hover:underline transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
+           stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+      </svg>
+      Retour à la liste des activités
+    </a>
+  </div>
+
+
+
+  <div class="p-8 mb-8 bg-white rounded-2xl shadow-lg" x-data="{ editing: false }">
+
+    <!-- Affichage mode lecture -->
+    <template x-if="!editing">
+      <div>
+        <div class="flex justify-between items-start mb-4">
+          <h1 class="text-4xl font-bold text-green-700">{{ info.title }}</h1>
+          {% if is_moderator or user.is_superuser %}
+          <button @click="editing = true"
+            class="inline-flex items-center gap-2 px-5 py-2 bg-green-500 text-white rounded-lg hover:bg-green-700 transition ml-4">
+            ✏️ Modifier
+          </button>
+          {% endif %}
+        </div>
+        <p class="text-gray-600 text-sm mb-6">🗓️ Publié le {{ info.created_at|date:"d/m/Y H:i" }}</p>
+        <div class="prose max-w-none text-gray-800 leading-relaxed">
+          {% autoescape off %}{{ info.content|safe }}{% endautoescape %}
+        </div>
+      </div>
+    </template>
+
+    <!-- Affichage mode édition -->
+    <template x-if="editing">
+      <form method="POST" class="space-y-6">
+        {% csrf_token %}
+        <h2 class="text-2xl font-semibold text-gray-800">✏️ Modifier l'information</h2>
+
+        <!-- Titre -->
+        <div>
+          <label class="block mb-1 font-medium text-gray-700">Titre</label>
+          <input type="text" name="title" value="{{ info.title }}"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+            required>
+        </div>
+
+        <!-- Contenu -->
+        <div>
+          <label class="block mb-1 font-medium text-gray-700">Contenu</label>
+          <input id="content" type="hidden" name="content" value="{{ info.content }}" required>
+          <trix-editor input="content" class="trix-content w-full rounded-lg border border-gray-300 p-2"></trix-editor>
+        </div>
+
+        <!-- Boutons -->
+        <div class="flex justify-end gap-4 pt-4">
+          <button type="button" @click="editing = false"
+            class="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Annuler</button>
+          <button type="submit"
+            class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Enregistrer</button>
+        </div>
+      </form>
+    </template>
+  </div>
+</div>
+{% endblock %}

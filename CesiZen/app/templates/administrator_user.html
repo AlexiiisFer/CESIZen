@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="bg-[#F5F7FA] flex items-center py-16">
+  <div class="container mx-auto p-4 flex w-full justify-center">
+    <h1 class="text-4xl font-bold">Gestion <span class="text-green-500">Utilisateur</span></h1>
+  </div>
+</div>
+
+<div class="container mx-auto my-8">
+
+  <div class="flex justify-between items-center mb-6">
+    <button onclick="openAddUserModal()"
+      class="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg shadow transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+        stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+      Ajouter un utilisateur
+    </button>
+  </div>
+
+
+
+  <form method="get" class="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold text-gray-500">Liste des utilisateurs</h2>
+    </div>
+
+    <div class="flex items-center gap-2 w-full md:w-auto">
+      <input type="text" name="search" placeholder="Rechercher par pseudo..." value="{{ search|default_if_none:'' }}"
+        class="border rounded-lg px-4 py-2 w-full md:w-64 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+      <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+        🔍 Rechercher
+      </button>
+    </div>
+  </form>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white shadow rounded-lg overflow-hidden text-sm">
+      <thead class="bg-green-600 text-white uppercase tracking-wider text-xs">
+        <tr>
+          <th class="py-3 px-4 text-left">Photo</th>
+
+          <th class="py-3 px-4 text-left">
+            <a
+              href="?{% if search %}search={{ search }}&{% endif %}sort=username&dir={% if sort == 'username' and direction == 'asc' %}desc{% else %}asc{% endif %}">
+              Pseudo {% if sort == 'username' %}{% if direction == 'asc' %}▲{% else %}▼{% endif %}{% endif %}
+            </a>
+          </th>
+
+          <th class="py-3 px-4 text-left">
+            <a
+              href="?{% if search %}search={{ search }}&{% endif %}sort=email&dir={% if sort == 'email' and direction == 'asc' %}desc{% else %}asc{% endif %}">
+              Email {% if sort == 'email' %}{% if direction == 'asc' %}▲{% else %}▼{% endif %}{% endif %}
+            </a>
+          </th>
+
+          <th class="py-3 px-4 text-left">
+            <a
+              href="?{% if search %}search={{ search }}&{% endif %}sort=first_name&dir={% if sort == 'first_name' and direction == 'asc' %}desc{% else %}asc{% endif %}">
+              Prénom {% if sort == 'first_name' %}{% if direction == 'asc' %}▲{% else %}▼{% endif %}{% endif %}
+            </a>
+          </th>
+
+          <th class="py-3 px-4 text-left">
+            <a
+              href="?{% if search %}search={{ search }}&{% endif %}sort=last_name&dir={% if sort == 'last_name' and direction == 'asc' %}desc{% else %}asc{% endif %}">
+              Nom {% if sort == 'last_name' %}{% if direction == 'asc' %}▲{% else %}▼{% endif %}{% endif %}
+            </a>
+          </th>
+
+          <th class="py-3 px-4 text-center">Modérateur</th>
+          <th class="py-3 px-4 text-center">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-200">
+        {% for user in page_obj %}
+        <tr class="hover:bg-gray-50 transition">
+          <td class="px-4 py-3">
+            <img src="{{ user.userprofile.profile_picture.url }}" alt="Photo de {{ user.username }}"
+              class="h-10 w-10 rounded-full border mx-auto">
+          </td>
+          <td class="px-4 py-3">{{ user.username }}</td>
+          <td class="px-4 py-3">{{ user.email }}</td>
+          <td class="px-4 py-3">{{ user.first_name }}</td>
+          <td class="px-4 py-3">{{ user.last_name }}</td>
+          <td class="px-4 py-3 text-center">
+            {% if user.groups.all.0.name == "Moderator" %}
+            <span class="inline-block px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 font-medium">Oui</span>
+            {% else %}
+            <span class="inline-block px-2 py-1 text-xs rounded-full bg-red-100 text-red-700 font-medium">Non</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-center">
+            <div class="flex justify-center gap-3">
+
+              <!-- ✏️ Modifier -->
+              <div class="relative group">
+                <button class="text-blue-600 hover:text-blue-800" data-id="{{ user.id }}"
+                  data-username="{{ user.username }}" data-email="{{ user.email }}"
+                  data-firstname="{{ user.first_name }}" data-lastname="{{ user.last_name }}"
+                  data-is-moderator="{% if user.groups.all.0.name == 'Moderator' %}true{% else %}false{% endif %}"
+                  onclick="openEditUserModal(this)">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5M18.5 2.5l2 2L12 13l-3 1 1-3 8.5-8.5z" />
+                  </svg>
+                </button>
+                <div
+                  class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-10">
+                  Modifier
+                </div>
+              </div>
+
+              <!-- ⛔ Activer / désactiver (repris tel quel) -->
+              <form method="post" action="{% url 'toggle_user_active' user.id %}" class="relative group">
+                {% csrf_token %}
+                <button type="submit"
+                  class="{% if user.is_active %}text-yellow-600 hover:text-yellow-800{% else %}text-green-600 hover:text-green-700{% endif %}">
+                  {% if user.is_active %}
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {% else %}
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  {% endif %}
+                </button>
+                <div
+                  class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-10">
+                  {% if user.is_active %}Désactiver{% else %}Activer{% endif %}
+                </div>
+              </form>
+
+              <!-- 🗑️ Supprimer -->
+              <div class="relative group">
+                <button data-url="{% url 'delete_user' user.id %}" onclick="openModal(this.getAttribute('data-url'))"
+                  class="text-red-600 hover:text-red-800">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                <div
+                  class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-10">
+                  Supprimer
+                </div>
+              </div>
+
+            </div>
+          </td>
+
+
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="py-6 text-center text-gray-500">Aucun utilisateur trouvé.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+
+    <!-- ✅ MODALE D’AJOUT UTILISATEUR -->
+    <div id="addUserModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-xl w-full max-w-lg shadow-lg">
+        <h2 class="text-xl font-semibold mb-4 text-gray-800">Ajouter un utilisateur</h2>
+        <form method="post" action="{% url 'add_user' %}" enctype="multipart/form-data" class="space-y-4">
+          {% csrf_token %}
+          <div>
+            <label class="block text-sm text-gray-600">Photo de profil</label>
+            <input type="file" name="profile_picture" accept="image/*" class="w-full border px-4 py-2 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Pseudo</label>
+            <input type="text" name="username" class="w-full border px-4 py-2 rounded-lg" required>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Email</label>
+            <input type="email" name="email" class="w-full border px-4 py-2 rounded-lg" required>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Prénom</label>
+            <input type="text" name="first_name" class="w-full border px-4 py-2 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Nom</label>
+            <input type="text" name="last_name" class="w-full border px-4 py-2 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Mot de passe</label>
+            <input type="password" name="password" class="w-full border px-4 py-2 rounded-lg" required>
+          </div>
+          <div>
+            <label class="inline-flex items-center text-sm gap-2">
+              <input type="checkbox" name="is_moderator" class="h-4 w-4 text-green-500">
+              Modérateur
+            </label>
+          </div>
+          <div class="flex justify-between mt-6">
+            <button type="button" onclick="closeAddUserModal()"
+              class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Annuler</button>
+            <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Ajouter</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ✏️ MODALE DE MODIFICATION UTILISATEUR -->
+    <div id="editUserModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-xl w-full max-w-lg shadow-lg">
+        <h2 class="text-xl font-semibold mb-4 text-gray-800">Modifier un utilisateur</h2>
+        <form method="post" action="" id="editUserForm" class="space-y-4">
+          {% csrf_token %}
+          <div>
+            <label class="block text-sm text-gray-600">Pseudo</label>
+            <input type="text" name="username" id="edit_user_username" class="w-full border px-4 py-2 rounded-lg"
+              required>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Email</label>
+            <input type="email" name="email" id="edit_user_email" class="w-full border px-4 py-2 rounded-lg" required>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Prénom</label>
+            <input type="text" name="first_name" id="edit_user_firstname" class="w-full border px-4 py-2 rounded-lg">
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Nom</label>
+            <input type="text" name="last_name" id="edit_user_lastname" class="w-full border px-4 py-2 rounded-lg">
+          </div>
+          <div>
+            <label class="inline-flex items-center text-sm gap-2">
+              <input type="checkbox" name="is_moderator" id="edit_user_is_moderator" class="h-4 w-4 text-green-500">
+              Modérateur
+            </label>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600">Nouveau mot de passe</label>
+            <input type="password" name="password" placeholder="Laisser vide pour ne pas changer"
+              class="w-full border px-4 py-2 rounded-lg">
+          </div>
+          <div class="flex justify-between mt-6">
+            <button type="button" onclick="closeEditUserModal()"
+              class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Annuler</button>
+            <button type="submit"
+              class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+
+
+    <div id="confirmModal" class="fixed inset-0 hidden bg-black bg-opacity-50 z-50 flex items-center justify-center">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-lg text-center">
+        <h2 class="text-xl font-semibold mb-4 text-gray-800">Confirmer la suppression</h2>
+        <p class="text-gray-600">Es-tu sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.</p>
+        <div class="mt-6 flex justify-center gap-4">
+          <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Annuler</button>
+          <a id="deleteConfirmLink" href="#" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Supprimer</a>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="flex justify-between items-center mt-6">
+      <div class="text-sm text-gray-600">
+        Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+      </div>
+      <div class="flex gap-1">
+        {% if page_obj.has_previous %}
+        <a href="?{% if search %}search={{ search }}&{% endif %}sort={{ sort }}&dir={{ direction }}&page={{ page_obj.previous_page_number }}"
+          class="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">← Précédent</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="px-3 py-1 bg-green-500 text-white rounded-lg text-sm">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-2' and num < page_obj.number|add:'2' %} <a
+          href="?{% if search %}search={{ search }}&{% endif %}sort={{ sort }}&dir={{ direction }}&page={{ num }}"
+          class="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">{{ num }}</a>
+          {% endif %}
+          {% endfor %}
+          {% if page_obj.has_next %}
+          <a href="?{% if search %}search={{ search }}&{% endif %}sort={{ sort }}&dir={{ direction }}&page={{ page_obj.next_page_number }}"
+            class="px-3 py-1 border rounded-lg text-sm hover:bg-gray-100">Suivant →</a>
+          {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+
+  function openAddUserModal() {
+    document.getElementById('addUserModal').classList.remove('hidden');
+  }
+
+  function closeAddUserModal() {
+    document.getElementById('addUserModal').classList.add('hidden');
+  }
+
+  function openEditUserModal(button) {
+    const id = button.dataset.id;
+    const username = button.dataset.username;
+    const email = button.dataset.email;
+    const firstname = button.dataset.firstname;
+    const lastname = button.dataset.lastname;
+    const isModerator = button.dataset.isModerator === "true";
+
+    document.getElementById('edit_user_username').value = username;
+    document.getElementById('edit_user_email').value = email;
+    document.getElementById('edit_user_firstname').value = firstname;
+    document.getElementById('edit_user_lastname').value = lastname;
+    document.getElementById('edit_user_is_moderator').checked = isModerator;
+
+    document.getElementById('editUserForm').action = `/edit_user/${id}/`;
+
+    document.getElementById('editUserModal').classList.remove('hidden');
+  }
+
+  function closeEditUserModal() {
+    document.getElementById('editUserModal').classList.add('hidden');
+  }
+
+  function openModal(deleteUrl) {
+    document.getElementById('deleteConfirmLink').href = deleteUrl;
+    document.getElementById('confirmModal').classList.remove('hidden');
+  }
+
+  function closeModal() {
+    document.getElementById('confirmModal').classList.add('hidden');
+  }
+</script>
+
+{% endblock %}

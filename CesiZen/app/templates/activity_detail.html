@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto py-16 px-4">
+  <div class="mb-6">
+    <a href="{% url 'activities' %}" class="inline-flex items-center text-sm text-green-600 hover:underline transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
+           stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+      </svg>
+      Retour à la liste des activités
+    </a>
+  </div>
+  
+  <div class="bg-white rounded-2xl shadow-lg p-6 md:p-10">
+    
+    <div class="flex flex-col md:flex-row gap-8 items-start">
+      
+   
+      <div class="md:w-1/2 w-full">
+        {% if activity.video_url %}
+        <div class="aspect-[16/9] rounded-lg overflow-hidden shadow">
+          <iframe class="w-full h-full" src="{{ activity.video_url }}" frameborder="0" allowfullscreen></iframe>
+        </div>
+        
+        {% elif activity.image %}
+        <div class="w-full aspect-[4/3] bg-gray-100 rounded-lg flex items-center justify-center">
+          <img src="{{ activity.image.url }}" alt="{{ activity.title }}"
+               class="object-contain max-h-full max-w-full rounded" />
+        </div>
+        
+        
+        {% else %}
+        <div class="flex items-center justify-center w-full h-64 mb-6 bg-gray-100 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 3h18M3 3v18M3 21h18M21 3v18M8 8h8M8 16h8M8 12h8" />
+            </svg>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="md:w-1/2 w-full">
+        <h1 class="text-3xl font-bold mb-2">{{ activity.title }}</h1>
+        <p class="text-sm text-gray-500 mb-4">{{ activity.category.icon }} {{ activity.category.name }}</p>
+        <p class="text-gray-800 leading-relaxed whitespace-pre-line">{{ activity.description }}</p>
+
+        {% if user.is_authenticated %}
+        <form action="{% url 'toggle_favorite' activity.pk %}" method="post" class="mt-6">
+          {% csrf_token %}
+          <button
+            type="submit"
+            class="bg-green-500 hover:bg-green-700 text-white px-6 py-2 rounded-full shadow transition"
+          >
+            {% if is_favorite %}
+              💚 Retirer des favoris
+            {% else %}
+              🤍 Ajouter aux favoris
+            {% endif %}
+          </button>
+        </form>
+        {% else %}
+        <p class="mt-6 text-gray-600">
+          <a href="{% url 'login' %}" class="text-green-600 hover:underline">Connecte-toi</a> pour ajouter cette activité à tes favoris.
+        </p>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

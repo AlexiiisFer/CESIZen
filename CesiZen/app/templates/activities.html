@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="bg-[#F5F7FA] flex items-center py-16">
+    <div class="container mx-auto p-4 flex w-full justify-center">
+        <h1 class="text-4xl font-bold">
+            Activité De <span class="text-green-500">Détente</span>
+        </h1>
+    </div>
+</div>
+
+<div class="container mx-auto p-4">
+
+    <form method="get" class="bg-white p-6 rounded-xl shadow mb-10 space-y-6">
+
+        <div class="relative">
+            <label for="search" class="sr-only">Recherche</label>
+            <input type="text" id="search" name="q" placeholder="Rechercher une activité..."
+                value="{{ search_query|default_if_none:'' }}"
+                class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+            <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
+
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+
+            </div>
+        </div>
+
+        <div>
+            <h2 class="text-sm font-semibold text-gray-600 mb-2">Catégories</h2>
+            <div class="flex flex-wrap gap-2">
+                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if favorites_only %}favorites=1&{% endif %}"
+                    class="px-4 py-2 rounded-full text-sm font-medium border transition
+              {% if not selected_category %}bg-green-500 text-white border-green-500{% else %}text-gray-600 bg-gray-100 hover:bg-gray-200{% endif %}">
+                    Toutes
+                </a>
+                {% for cat in categories %}
+                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}category={{ cat.id }}{% if favorites_only %}&favorites=1{% endif %}"
+                    class="px-4 py-2 rounded-full text-sm font-medium border transition
+              {% if selected_category == cat.id|stringformat:" s" %} bg-green-500 text-white border-green-500 {% else
+                    %} text-gray-600 bg-gray-100 hover:bg-gray-200 {% endif %}">
+                    {{ cat.icon }} {{ cat.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            {% if user.is_authenticated %}
+            <div class="flex items-center gap-2">
+                <input type="checkbox" name="favorites" value="1" id="fav" {% if favorites_only %}checked{% endif %}
+                    class="rounded border-gray-300" />
+                <label for="fav" class="text-sm text-gray-600">Afficher seulement mes favoris</label>
+            </div>
+            {% endif %}
+
+            <div class="flex gap-2">
+                <a href="{% url 'activities' %}"
+                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                    Réinitialiser
+                </a>
+                <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 shadow">
+                    Rechercher
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% for activity in activities %}
+        <a href="{% url 'activity_detail' activity.pk %}" class="block bg-white p-4 rounded-xl shadow hover:shadow-lg transition">
+            <div class="relative">
+                {% if activity.image %}
+                <img src="{{ activity.image.url }}" alt="{{ activity.title }}"
+                    class="rounded-lg w-full h-64 object-contain bg-gray-100" />
+                {% else %}
+                <div class="flex items-center justify-center w-full h-64 bg-gray-100 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 3h18M3 3v18M3 21h18M21 3v18M8 8h8M8 16h8M8 12h8" />
+                    </svg>
+                </div>
+                {% endif %}
+    
+                {% if user.is_authenticated %}
+                <form method="post" action="{% url 'toggle_favorite' activity.pk %}"
+                    class="absolute top-2 right-2 z-10">
+                    {% csrf_token %}
+                    <button type="submit" class="bg-white/90 rounded-full p-2 shadow-md hover:bg-white transition"
+                        title="{% if activity.id in favorite_activities %}Retirer des favoris{% else %}Ajouter aux favoris{% endif %}">
+    
+                        {% if activity.id in favorite_activities %}
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="currentColor"
+                            viewBox="0 0 24 24">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 
+                     2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 
+                     3.41 0.81 4.5 2.09C13.09 3.81 
+                     14.76 3 16.5 3 19.58 3 22 5.42 
+                     22 8.5c0 3.78-3.4 6.86-8.55 
+                     11.54L12 21.35z" />
+                        </svg>
+                        {% else %}
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 
+                                2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 
+                                19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                        </svg>
+                        {% endif %}
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+    
+            <div class="mt-4">
+                <h2 class="text-xl font-bold">{{ activity.title }}</h2>
+                <p class="text-sm text-gray-500">{{ activity.category.icon }} {{ activity.category.name }}</p>
+                <p class="mt-2 text-gray-700 line-clamp-3">{{ activity.description|truncatewords:20 }}</p>
+            </div>
+        </a>
+        {% empty %}
+        <p class="col-span-full text-center text-gray-600">Aucune activité disponible pour le moment.</p>
+        {% endfor %}
+    </div>
+
+        
+
+    <div class="mt-10 flex justify-center">
+        <div class="inline-flex gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if favorites_only %}&favorites=1{% endif %}"
+                class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">← Précédent</a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <span class="px-3 py-1 bg-green-500 text-white rounded">{{ num }}</span>
+            {% elif num > page_obj.number|add:'-2' and num < page_obj.number|add:'2' %} <a
+                href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if favorites_only %}&favorites=1{% endif %}"
+                class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200">{{ num }}</a>
+                {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if favorites_only %}&favorites=1{% endif %}"
+                    class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Suivant →</a>
+                {% endif %}
+        </div>
+    </div>
+
+
+</div>
+
+{% endblock %}

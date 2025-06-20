@@ -1,0 +1,248 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/trix@2.0.0/dist/trix.css">
+  <link rel="stylesheet" href="{% static 'dist/styles.css' %}">
+  <link rel="icon" href="{% static 'images/CesiZen_logo.png' %}" type="image/x-icon" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}CesiZen{% endblock %}</title>
+</head>
+
+<body class="bg-L_Grey text-Black font-sans ">
+
+  <nav class="bg-Grey-blue text-Secondary shadow">
+    <div class="container mx-auto flex flex-wrap items-center justify-between px-6 py-4">
+      <div class="flex items-center space-x-4">
+        <img src="{% static 'images/CesiZen_logo.png' %}" alt="Logo" class="h-16 w-16" />
+        <a href="/home" class="text-xl font-bold text-Primary">CesiZen</a>
+      </div>
+
+      <div class="hidden md:flex items-center space-x-8">
+        <a href="/home"
+          class="{% if request.path == '/home/' %}text-green-500 hover:text-green-700{% else %}hover:text-green-700{% endif %}">Accueil</a>
+        <a href="/activities"
+          class="{% if request.path == '/activities/' %}text-green-500 hover:text-green-700{% else %}hover:text-green-700{% endif %}">Activités</a>
+        <a href="/informations"
+          class="{% if request.path == '/informations/' %}text-green-500 hover:text-green-700{% else %}hover:text-green-700{% endif %}">Informations</a>
+
+        {% if is_moderator or user.is_superuser %}
+
+        <div x-data="{ open: false }" class="relative block text-Primary">
+          <button @click="open = !open"
+            class="flex items-center justify-between w-full text-left {% if request.path == '/admin_user/' or request.path == '/admin_activities/' %}text-green-500 hover:text-green-700{% else %}hover:text-green-700{% endif %}">
+            Administration
+            <svg :class="{ 'rotate-180': open }" class="w-4 h-4 ml-2 transform transition-transform duration-300"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          <div x-show="open" @click.outside="open = false" x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            class="absolute left-1/2 transform -translate-x-1/2 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+            <a href="/admin_user/"
+              class="block px-4 py-2 {% if request.path == '/admin_user/'%}text-green-500 hover:text-green-700{% else %}hover:text-green-700{% endif %}">Utilisateurs</a>
+            <a href="/admin_activities/"
+              class="block px-4 py-2 {% if request.path == '/admin_activities/' %}text-green-500 hover:text-green-700{% else %}hover:text-green-700{% endif %}">Activités</a>
+          </div>
+        </div>
+
+        {% endif %}
+        {% if user.is_authenticated %}
+        <div x-data="{ open: false }" class="relative">
+          <img src="{{ user.userprofile.profile_picture.url }}" alt="User Image"
+            class="h-10 w-10 rounded-full border-2 border-green-500 hover:border-green-700 cursor-pointer"
+            @click="open = !open" />
+          <div x-show="open" @click.outside="open = false" x-transition
+            class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+            <div class="px-4 py-2 text-gray-800">
+              <p class="font-bold">{{ user.username }}</p>
+              <p class="text-gray-500 text-sm">{{ user.email }}</p>
+            </div>
+            <hr class="border-gray-200" />
+            <a href="/settings" class="block px-4 py-2 text-gray-800 hover:bg-gray-200 transition">Paramètres</a>
+            <a href="/logout" class="block px-4 py-2 text-gray-800 hover:bg-gray-200 transition">Déconnexion</a>
+          </div>
+        </div>
+        {% else %}
+        <a href="/login" class="bg-green-500 text-white px-6 py-2 rounded shadow hover:bg-green-700">Se connecter</a>
+        {% endif %}
+
+      </div>
+
+      <div class="md:hidden flex items-center space-x-8">
+
+        <div x-data="{ mobileMenuOpen: false }" class="relative">
+
+          <button @click="mobileMenuOpen = !mobileMenuOpen"
+            class="flex flex-col justify-center items-center w-8 h-8 space-y-1.5">
+            <span :class="mobileMenuOpen ? 'rotate-45 translate-y-2' : ''"
+              class="w-6 h-0.5 bg-black transition-transform duration-300"></span>
+            <span :class="mobileMenuOpen ? 'opacity-0' : 'opacity-100'"
+              class="w-6 h-0.5 bg-black transition-opacity duration-300"></span>
+            <span :class="mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''"
+              class="w-6 h-0.5 bg-black transition-transform duration-300"></span>
+          </button>
+          <div x-show="mobileMenuOpen" x-transition @click.outside="mobileMenuOpen = false"
+            class="absolute right-0 w-48 bg-white shadow-md mt-2 z-40 space-y-2 p-4 border-t border-gray-200">
+            <a href="/home"
+              class="block {% if request.path == '/home/' %}text-green-500 hover:text-green-700{% else %}hover:text-green-700{% endif %}">Accueil</a>
+            <a href="/activities"
+              class="block {% if request.path == '/activities/' %}text-green-500 hover:text-green-700{% else %}hover:text-green-700{% endif %}">Activités</a>
+            <a href="/informations"
+              class="block {% if request.path == '/informations/' %}text-green-500 hover:text-green-700{% else %}hover:text-green-700{% endif %}">Informations</a>
+
+
+            {% if is_moderator or user.is_superuser %}
+            <div x-data="{ adminMenuOpen: false }">
+              <button @click="adminMenuOpen = !adminMenuOpen"
+                class="flex justify-between items-center w-full {% if request.path == '/admin_user/' or request.path == '/admin_activities/' %}text-green-500 hover:text-green-700{% else %}hover:text-green-700{% endif %}">
+                Administration
+                <svg :class="adminMenuOpen ? 'rotate-90' : ''" class="w-4 h-4 transition-transform duration-300"
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </button>
+              <div x-show="adminMenuOpen" x-transition class="border-l mt-2 space-y-1">
+                <a href="/admin_user/"
+                  class="block text-sm {% if request.path == '/admin_user/' %}text-green-500 hover:text-green-700{% else %}hover:text-green-700{% endif %}">
+                  Utilisateurs</a>
+                <a href="/admin_activities/"
+                  class="block text-sm {% if request.path == '/admin_activities/' %}text-green-500 hover:text-green-700{% else %}hover:text-green-700{% endif %}">
+                  Activités</a>
+              </div>
+            </div>
+
+            {% endif %}
+          </div>
+        </div>
+
+        {% if user.is_authenticated %}
+        <div x-data="{ open: false }" class="relative">
+          <img src="{{ user.userprofile.profile_picture.url }}" alt="User Image"
+            class="h-10 w-10 rounded-full border-2 border-green-500 hover:border-green-700 cursor-pointer"
+            @click="open = !open" />
+          <div x-show="open" @click.outside="open = false" x-transition
+            class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+            <div class="px-4 py-2 text-gray-800">
+              <p class="font-bold">{{ user.username }}</p>
+              <p class="text-gray-500 text-sm">{{ user.email }}</p>
+            </div>
+            <hr class="border-gray-200" />
+            <a href="/settings" class="block px-4 py-2 text-gray-800 hover:bg-gray-200 transition">Paramètres</a>
+            <a href="/logout" class="block px-4 py-2 text-gray-800 hover:bg-gray-200 transition">Déconnexion</a>
+          </div>
+        </div>
+        {% else %}
+        <a href="/login" class="flex items-center justify-center bg-green-500 text-white p-2 rounded-full shadow hover:bg-green-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12H3m12 0l-4-4m4 4l-4 4" />
+          </svg>
+        </a>
+        {% endif %}
+
+      </div>
+    </div>
+    <hr class="border-gray-200" />
+  </nav>
+
+  {% if messages %}
+  <div>
+    {% for message in messages %} {% if message.tags == 'error' %}
+    <div
+      class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative flex items-center alert-message"
+      role="alert">
+      <svg class="fill-current h-6 w-6 text-red-500 mr-2 cursor-pointer" role="button"
+        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" onclick="this.parentElement.style.display='none';">
+        <title>Close</title>
+        <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </svg>
+      <span class="block sm:inline">{{ message }}</span>
+    </div>
+    {% elif message.tags == 'success' %}
+    <div
+      class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative flex items-center alert-message"
+      role="alert">
+      <svg class="fill-current h-6 w-6 text-green-500 mr-2 cursor-pointer" role="button"
+        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" onclick="this.parentElement.style.display='none';">
+        <title>Close</title>
+        <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </svg>
+      <span class="block sm:inline">{{ message }}</span>
+    </div>
+    {% else %}
+    <div class="text-red-500 alert-message">{{ message }}</div>
+    {% endif %} {% endfor %}
+  </div>
+  {% endif %}
+
+  <div>
+    {% block content %}
+
+    {% endblock %}
+  </div>
+
+  <footer class="bg-gray-800 text-white py-4">
+    <div class="container mx-auto text-center">
+      <p class="text-white">
+        &copy; 2025 Alexis Fernandes.
+      </p>
+      <div class="flex justify-center space-x-4">
+        Tous droits réservés.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+      setTimeout(function () {
+        var messages = document.querySelectorAll(".alert-message");
+        messages.forEach(function (message) {
+          message.style.display = "none";
+        });
+      }, 3000);
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const swiper = new Swiper('.mySwiper', {
+        loop: true,
+        slidesPerView: 4,
+        navigation: {
+          nextEl: '.swiper-button-next',
+          prevEl: '.swiper-button-prev',
+        },
+        pagination: {
+          el: '.swiper-pagination',
+          clickable: true,
+        },
+      });
+
+      const nextButton = document.querySelector('.swiper-button-next');
+      const prevButton = document.querySelector('.swiper-button-prev');
+      if (nextButton) nextButton.style.color = 'green';
+      if (prevButton) prevButton.style.color = 'green';
+
+      const paginationBullets = document.querySelectorAll('.swiper-pagination-bullet');
+      paginationBullets.forEach(bullet => {
+        bullet.style.backgroundColor = 'green';
+      });
+    });
+
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/alpinejs" defer></script>
+  <script type="text/javascript" src="https://unpkg.com/trix@2.0.0/dist/trix.umd.min.js"></script>
+</body>
+
+</html>

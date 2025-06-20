@@ -1,0 +1,13 @@
+{
+  "type": "module",
+  "scripts": {
+  "build": "postcss ./CesiZen/static/src/input.css -o ./CesiZen/static/dist/styles.css",
+  "watch": "postcss ./CesiZen/static/src/input.css -o ./CesiZen/static/dist/styles.css --watch"
+},
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.5",
+    "postcss": "^8.5.3",
+    "postcss-cli": "^11.0.1",
+    "tailwindcss": "^4.1.5"
+  }
+}
