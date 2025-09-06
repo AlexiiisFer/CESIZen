@@ -3,3 +3,8 @@ django-browser-reload
 djangorestframework
 djangorestframework-simplejwt
 django-cors-headers
+gunicorn
+python-dotenv
+dj-database-url
+psycopg2-binary
+Pillow
