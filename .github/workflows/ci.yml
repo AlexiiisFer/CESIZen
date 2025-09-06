@@ -93,4 +93,4 @@ jobs:
         if: github.event.inputs.build_image == 'true' || env.BUILD_IMAGE == 'true'
         run: |
           echo "Building Docker image because BUILD_IMAGE=true"
-          docker build -t cesizen:${{ github.sha }} .
+            docker build -t cesizen:${{ github.sha }} .
