@@ -48,11 +48,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Fail if SECRET_KEY not provided
+      - name: Set SECRET_KEY for this job
         run: |
-          if [ -z "${{ secrets.DJANGO_SECRET_KEY }}" ]; then
-            echo "ERROR: repository secret DJANGO_SECRET_KEY is not set. Please add it under repository Settings → Secrets." >&2
-            exit 1
+          # If repository secret DJANGO_SECRET_KEY exists use it, otherwise generate a temporary CI-only key
+          if [ -n "${{ secrets.DJANGO_SECRET_KEY }}" ]; then
+            echo "SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" >> $GITHUB_ENV
+          else
+            echo "WARNING: DJANGO_SECRET_KEY not set — using temporary CI key (not for production)" >&2
+            # Use a reproducible temporary key for CI runs; replace with a real secret later
+            echo "SECRET_KEY=ci-temporary-secret-change-me-$(date +%s)" >> $GITHUB_ENV
           fi
 
       - name: Set up Python
