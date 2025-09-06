@@ -21,7 +21,8 @@ env:
   DB_PASSWORD: test_pass
   DB_HOST: 127.0.0.1
   DB_PORT: 5432
-  BUILD_IMAGE: ${{ github.event.inputs.build_image || 'false' }}
+  BUILD_IMAGE: 'false'
+  # Use workflow_dispatch input 'build_image' at runtime in the step 'if' expression
 
 jobs:
   test:
@@ -97,7 +98,7 @@ PY
         run: python CesiZen/manage.py test --verbosity=2
 
       - name: Optional: Build Docker image
-        if: env.BUILD_IMAGE == 'true'
+        if: github.event.inputs.build_image == 'true' || env.BUILD_IMAGE == 'true'
         run: |
           echo "Building Docker image because BUILD_IMAGE=true"
           docker build -t cesizen:${{ github.sha }} .
