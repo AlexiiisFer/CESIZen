@@ -13,7 +13,8 @@ on:
         default: 'false'
 
 env:
-  SECRET_KEY: ${{ secrets.SECRET_KEY }}
+  # CI reads the secret from repository Secrets. Add DJANGO_SECRET_KEY in repo settings.
+  SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
   DEBUG: 'False'
   ALLOWED_HOSTS: 'localhost,127.0.0.1'
   DB_NAME: test_db
@@ -46,6 +47,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Fail if SECRET_KEY not provided
+        run: |
+          if [ -z "${{ secrets.DJANGO_SECRET_KEY }}" ]; then
+            echo "ERROR: repository secret DJANGO_SECRET_KEY is not set. Please add it under repository Settings → Secrets." >&2
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v4

@@ -11,8 +11,18 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
-from dotenv import load_dotenv
-import dj_database_url
+# Make python-dotenv optional so tests/CI without it don't fail at import time
+try:
+    from dotenv import load_dotenv  # type: ignore
+    _HAVE_DOTENV = True
+except Exception:
+    _HAVE_DOTENV = False
+import sys
+try:
+    import dj_database_url
+    _HAVE_DJ_DB_URL = True
+except Exception:
+    _HAVE_DJ_DB_URL = False
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,12 +31,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# Load .env
-env_path = BASE_DIR / '..' / '.env'
-load_dotenv(dotenv_path=env_path)
+# Load .env from repository root if present
+# (BASE_DIR is project/CesiZen, repo root is two parents up in this workspace layout)
+env_path = BASE_DIR.parents[1] / '.env'
+if _HAVE_DOTENV:
+    load_dotenv(dotenv_path=env_path, override=False)
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-id7(7!c41ar9^ew7or^n(yr_u%0w0brg32x$3$akqcfl%1dl&$')
+# Use a safe fallback if SECRET_KEY is missing or empty in the environment
+secret_from_env = os.getenv('SECRET_KEY')
+if secret_from_env:
+    SECRET_KEY = secret_from_env
+else:
+    SECRET_KEY = 'django-insecure-id7(7!c41ar9^ew7or^n(yr_u%0w0brg32x$3$akqcfl%1dl&$'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('1', 'true', 'yes')
@@ -102,8 +119,19 @@ DATABASES = {
 
 # If a DATABASE_URL is provided, override using dj_database_url
 database_url = os.getenv('DATABASE_URL')
-if database_url:
+if database_url and _HAVE_DJ_DB_URL:
     DATABASES['default'] = dj_database_url.parse(database_url, conn_max_age=600)
+
+# When running tests locally, prefer a fast in-memory SQLite database so tests
+# don't require a running Postgres instance. Django's test command sets 'test'
+# in sys.argv.
+if 'test' in sys.argv:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
+    }
 
 
 # Password validation
