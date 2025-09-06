@@ -88,9 +88,3 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: CesiZen.settings
         run: python CesiZen/manage.py test --verbosity=2
-
-      - name: Optional: Build Docker image
-        if: github.event.inputs.build_image == 'true' || env.BUILD_IMAGE == 'true'
-        run: |
-          echo "Building Docker image because BUILD_IMAGE=true"
-            docker build -t cesizen:${{ github.sha }} .
