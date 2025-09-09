@@ -191,8 +191,7 @@ jobs:
         uses: github/codeql-action/analyze@v2
 
   build-image:
-    name: Build Docker image (optional)
-  if: ${{ github.event.inputs.build_image == 'true' }}
+    name: Build Docker image
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
