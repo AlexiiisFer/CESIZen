@@ -100,3 +100,18 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: CesiZen.settings
         run: python CesiZen/manage.py test --verbosity=2
+
+      - name: Install Bandit
+        run: |
+          python -m pip install bandit
+
+      - name: Run Bandit security scan
+        run: |
+          mkdir -p reports
+          bandit -r . -f json -o reports/bandit-report.json || true
+
+      - name: Upload Bandit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: reports/bandit-report.json
